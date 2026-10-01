@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Plasma Dream Generator · p5.js</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main id="stage"></main>
+
+  <pre id="hud"></pre>
+  <div id="toast"></div>
+
+  <section id="help" hidden>
+    <h2>Plasma Dream Generator</h2>
+    <p>Smooth, rhythmic, psychedelic liquid light with an analogue film finish. Drop an audio track or a preset <code>.json</code> anywhere on the page.</p>
+    <table>
+      <tr><td><kbd>Space</kbd></td><td>push: an extra pulse, like a strong beat</td></tr>
+      <tr><td><kbd>T</kbd></td><td>tap tempo (the first tap of a series is beat 1)</td></tr>
+      <tr><td><kbd>[</kbd> <kbd>]</kbd></td><td>tempo −1 / +1 BPM</td></tr>
+      <tr><td><kbd>X</kbd></td><td>morph to a new scene</td></tr>
+      <tr><td><kbd>1</kbd>–<kbd>9</kbd></td><td>morph to palette 1–9 (the order in Colour &gt; Palettes)</td></tr>
+      <tr><td><kbd>P</kbd></td><td>play / pause (the audio track too)</td></tr>
+      <tr><td><kbd>R</kbd></td><td>restart from 0</td></tr>
+      <tr><td><kbd>S</kbd></td><td>save a PNG snapshot</td></tr>
+      <tr><td><kbd>G</kbd></td><td>hide / show the settings panel</td></tr>
+      <tr><td><kbd>H</kbd></td><td>hide / show the info overlay</td></tr>
+      <tr><td><kbd>Enter</kbd></td><td>fullscreen</td></tr>
+      <tr><td><kbd>Esc</kbd></td><td>close this / cancel a render</td></tr>
+    </table>
+    <p class="dim">Keys only affect the live view and live recordings. <b>Render video</b> follows the BPM or the audio track from 0, so the same seed and settings always give the same file.</p>
+    <button id="help-close">Close</button>
+  </section>
+
+  <section id="progress" hidden>
+    <div id="progress-status">Rendering…</div>
+    <div class="track"><div id="progress-bar"></div></div>
+    <div id="progress-info"></div>
+    <button id="progress-cancel">Cancel (Esc)</button>
+  </section>
+
+  <!-- libraries (vendored so it works offline at the venue) -->
+  <script src="lib/p5.min.js"></script>
+  <script src="lib/lil-gui.umd.min.js"></script>
+  <script src="lib/mediabunny.min.js"></script>
+
+  <!-- engine -->
+  <script src="src/rng.js"></script>
+  <script src="src/palettes.js"></script>
+  <script src="src/shaders.js"></script>
+  <script src="src/audio.js"></script>
+  <script src="src/rhythm.js"></script>
+  <script src="src/forms.js"></script>
+  <script src="src/dream.js"></script>
+
+  <!-- app -->
+  <script src="src/settings.js"></script>
+  <script src="src/exporter.js"></script>
+  <script src="src/gui.js"></script>
+  <script src="src/app.js"></script>
+  <script src="src/sketch.js"></script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+# renders and media (keep big files out of the repo)
+*.mp4
+*.mov
+*.webm
+*.mkv
+*.wav
+*.mp3
+*.aif
+*.aiff
+*.flac
+renders/
+frames/
+
+# OS / tools
+.DS_Store
+Thumbs.db
+node_modules/
+.vscode/
