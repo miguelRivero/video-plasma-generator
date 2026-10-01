@@ -37,7 +37,7 @@
   /** what a render of the settings `S` will produce */
   GW.renderPlan = function (S, audio) {
     const fps = S.fps;
-    const loopSec = S.loopBars > 0 && !(S.beats === 'audio' && audio) ? S.loopBars * 240 / S.bpm : 0;
+    const loopBars = GW.loopBars(S, audio), loopSec = loopBars * 240 / S.bpm;
     const duration = loopSec || (S.duration > 0 ? S.duration : audio ? audio.duration : 30);
     const N = Math.max(1, Math.round(duration * fps));
     // a loop gets N frames that close up exactly (a hair off the fps if the loop isn't a whole number of frames)
@@ -45,7 +45,7 @@
     // loops warm up for whole loops, long enough for the trails to settle into the loop
     const half = 0.03 + 2.5 * S.trails * S.trails;
     const warm = loopSec ? N * Math.ceil(Math.max(6, 10 * half) / loopSec) : 0;
-    return { fps, loopSec, duration, N, step, warm };
+    return { fps, loopSec, loopBars, duration, N, step, warm };
   };
 
   // ------------------------------------------------------------------ offline render
@@ -57,22 +57,22 @@
     const M = window.Mediabunny;
     const S = GW.clone(app.S);
     const W = even(S.width), H = even(S.height);
-    const { fps, loopSec, N, step, warm } = GW.renderPlan(S, app.audio);
+    const { fps, loopSec, loopBars, N, step, warm } = GW.renderPlan(S, app.audio);
     const sub = Math.max(1, S.motionBlur | 0);
-    const base = `plasmadream_${W}x${H}_seed${S.seed}` + (loopSec ? `_loop${S.loopBars}bars_${S.bpm}bpm` : '');
+    const base = `videoplasma_${W}x${H}_seed${S.seed}` + (loopSec ? `_loop${+loopSec.toFixed(2)}s_${S.bpm}bpm` : '');
     const abort = () => new DOMException('Render cancelled', 'AbortError');
 
     // 1. ask where to save first, while we still have the click's user activation
     let dir = null, stream = null, format = null;
     if (S.format === 'png') {
       if (!window.showDirectoryPicker) throw new Error('PNG sequences need Chrome or Edge (folder access).');
-      dir = await window.showDirectoryPicker({ id: 'plasmadream-png', mode: 'readwrite' });
+      dir = await window.showDirectoryPicker({ id: 'videoplasma-png', mode: 'readwrite' });
     } else {
       format = S.format === 'webm' ? new M.WebMOutputFormat() : new M.Mp4OutputFormat();
       if (window.showSaveFilePicker) {
         const ext = format.fileExtension;
         const handle = await window.showSaveFilePicker({
-          id: 'plasmadream-video', suggestedName: base + ext,
+          id: 'videoplasma-video', suggestedName: base + ext,
           types: [{ description: 'Video', accept: { [format.mimeType]: [ext] } }],
         });
         stream = await handle.createWritable();
@@ -119,7 +119,7 @@
           asrc = new M.AudioBufferSource({ codec: audioCodec, quality: new M.Quality({ bitrate: 256e3 }) });
           output.addAudioTrack(asrc);
         }
-        try { output.setMetadataTags({ comment: 'plasma-dream-generator settings ' + JSON.stringify(S) }); } catch (e) { /* optional */ }
+        try { output.setMetadataTags({ comment: 'video-plasma-generator settings ' + JSON.stringify(S) }); } catch (e) { /* optional */ }
         await output.start();
       }
     } catch (e) {
@@ -159,7 +159,7 @@
           await nextTick();
         }
       }
-      ui.status(`Rendering ${N} frames at ${W}×${H} (${codecNote}${sub > 1 ? `, motion blur ×${sub}` : ''})` + (loopSec ? ` · seamless ${S.loopBars}-bar loop` : ''));
+      ui.status(`Rendering ${N} frames at ${W}×${H} (${codecNote}${sub > 1 ? `, motion blur ×${sub}` : ''})` + (loopSec ? ` · seamless ${loopSec.toFixed(2)} s loop (${loopBars} bars)` : ''));
       const t1 = performance.now();
       for (let i = 0; i < N; i++) {
         if (ui.cancelled) throw abort();
@@ -217,13 +217,13 @@
       'Run these in the folder with the PNG frames.',
       '',
       'HAP (Resolume):',
-      `  ffmpeg -framerate ${fps} -i frame_%06d.png -c:v hap -format hap dream_hap.mov`,
+      `  ffmpeg -framerate ${fps} -i frame_%06d.png -c:v hap -format hap plasma_hap.mov`,
       '',
       'ProRes 422 HQ:',
-      `  ffmpeg -framerate ${fps} -i frame_%06d.png -c:v prores_ks -profile:v 3 -pix_fmt yuv422p10le dream_prores.mov`,
+      `  ffmpeg -framerate ${fps} -i frame_%06d.png -c:v prores_ks -profile:v 3 -pix_fmt yuv422p10le plasma_prores.mov`,
       '',
       'H.264 (high quality):',
-      `  ffmpeg -framerate ${fps} -i frame_%06d.png -c:v libx264 -crf 14 -preset slow -pix_fmt yuv420p dream.mp4`,
+      `  ffmpeg -framerate ${fps} -i frame_%06d.png -c:v libx264 -crf 14 -preset slow -pix_fmt yuv420p plasma.mp4`,
       '',
     ].join('\n');
   }
@@ -251,7 +251,7 @@
           const type = this.mime.split(';')[0] || 'video/webm';
           const blob = new Blob(this.chunks, { type });
           const ext = type.includes('mp4') ? '.mp4' : '.webm';
-          download(blob, `plasmadream_live_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}${ext}`);
+          download(blob, `videoplasma_live_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}${ext}`);
           res(blob);
         };
         this.rec.stop();

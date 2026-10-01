@@ -87,8 +87,8 @@
     variation: 0.6,       // how different scenes are from each other
 
     // export
-    duration: 0,          // seconds, 0 = loop length, else the audio length, else 30
-    loopBars: 0,          // render a seamless loop this many bars long (0 = off; BPM only)
+    duration: 0,          // seconds, 0 = the audio length, else 30
+    loop: false,          // render a seamless loop, `duration` long rounded to whole bars (BPM only)
     format: 'mp4',        // 'mp4' | 'webm' | 'png'
     bitrate: 40,          // Mbps
     keyframe: 1,          // seconds between keyframes (smaller = snappier scrubbing in a VJ app)
@@ -97,7 +97,7 @@
   };
 
   // keys a built-in preset never touches (your wall size, export options...)
-  GW.OUTPUT_KEYS = ['width', 'height', 'fps', 'previewScale', 'duration', 'loopBars', 'format', 'bitrate', 'keyframe', 'motionBlur', 'withAudio'];
+  GW.OUTPUT_KEYS = ['width', 'height', 'fps', 'previewScale', 'duration', 'loop', 'format', 'bitrate', 'keyframe', 'motionBlur', 'withAudio'];
   // keys a built-in preset keeps unless it sets them (so a loaded track / your tempo stays in use)
   GW.KEEP_UNLESS_SET = ['beats', 'bpm', 'tempoMul', 'barOffset'];
 
@@ -179,7 +179,7 @@
     return S;
   };
 
-  const STORE = 'plasmadream.settings.v1';
+  const STORE = 'videoplasma.settings.v1';
 
   GW.loadStoredSettings = function () {
     const S = GW.defaults();

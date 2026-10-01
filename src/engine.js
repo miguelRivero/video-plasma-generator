@@ -1,9 +1,9 @@
 /*
-  Dream engine: renders one frame at time t onto the p5 canvas (WEBGL).
+  Engine: renders one frame at time t onto the p5 canvas (WEBGL).
 
   Pipeline, all on the GPU (shaders in src/shaders.js):
     light forms (p5 2D drawing, src/forms.js)
-      -> dream: domain-warped liquid noise + plasma, symmetry, ripples,
+      -> liquid: domain-warped liquid noise + plasma, symmetry, ripples,
          a looping palette, light and darkness, the forms bent into it
       -> trails: the last frame zoomed / turned / swirled and blended back in
       -> bloom: a blurred quarter-size copy
@@ -66,7 +66,7 @@
       this.audio = o.audio || null;
       this.sh = shaders();
       const W = this.W, H = this.H;
-      this.fbDream = makeFB(W, H);
+      this.fbLiquid = makeFB(W, H);
       this.fbA = makeFB(W, H);
       this.fbB = makeFB(W, H);
       this.fbAcc = null;                                   // made on demand (motion blur)
@@ -166,7 +166,7 @@
         T = [A.z, 0];
         D = [A.dx, A.dy];
       }
-      const spl = L ? S.loopBars * 4 / (S.stepBeats || 1) : 0;   // steps per loop
+      const spl = L ? rh.loopBars * 4 / (S.stepBeats || 1) : 0;   // steps per loop
       const hueStep = spl ? Math.round(S.hueStep * spl) / spl : S.hueStep;
 
       // ---- light forms (p5 drawing)
@@ -178,7 +178,7 @@
       const warp = Math.max(0, S.warp * R.warp * (1 + 0.8 * S.pulseWarp * R.pulse) * (1 + react * lv));
       const first = Object.keys(this.rows)[0];
       const palA = this.rows[R.palA] !== undefined ? R.palA : first, palB = this.rows[R.palB] !== undefined ? R.palB : palA;
-      pass(this.fbDream, sh.dream, {
+      pass(this.fbLiquid, sh.liquid, {
         uAspect: [aspect, 1],
         uNT: [T[0], T[1], 0.3 + 0.4 * S.detail, 0],
         uCam: [1 + 0.1 * S.pulseZoom * R.pulse, A.spin, D[0], D[1]],
@@ -201,7 +201,7 @@
       const keep = S.trails > 0 ? Math.pow(0.5, (still ? 1 / 60 : dt) / half) : 0;
       const zoom = S.fbZoom * 0.5 * (1 + 2 * S.pulseZoom * R.pulse);
       pass(cur, sh.feedback, {
-        uNew: this.fbDream, uPrev: prev, uAspect: [aspect, 1],
+        uNew: this.fbLiquid, uPrev: prev, uAspect: [aspect, 1],
         uFb: [keep, still ? 1 : Math.exp(zoom * dt), still ? 0 : S.fbSpin * 0.6 * dt, TRAILS[S.trailMode] || 0],
         uFb2: [still ? 0 : S.swirl * 3 * dt, still ? 0 : S.fbHue * 1.5 * dt, 0, this.hasPrev ? 1 : 0],
       });
@@ -324,7 +324,7 @@
     align(downbeat) { this.rhythm.align(downbeat); }
 
     dispose() {
-      for (const fb of [this.fbDream, this.fbA, this.fbB, this.fbQ1, this.fbQ2, ...(this.fbAcc || [])]) fb.remove();
+      for (const fb of [this.fbLiquid, this.fbA, this.fbB, this.fbQ1, this.fbQ2, ...(this.fbAcc || [])]) fb.remove();
       this.forms.remove();
       this.blank.remove();
     }

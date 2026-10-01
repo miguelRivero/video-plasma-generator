@@ -7,7 +7,7 @@
 
   GW.buildGUI = function (app) {
     const S = app.S;
-    const gui = new lil.GUI({ title: 'Plasma Dream Generator · ? = keys' });
+    const gui = new lil.GUI({ title: 'Video Plasma Generator · ? = keys' });
     const on = key => () => app.changed(key);
     const btn = (folder, label, fn) => folder.add({ [label]: fn }, label);
 
@@ -165,7 +165,7 @@
     // ---------------------------------------------------------------- export
     const fExp = gui.addFolder('Export');
     fExp.add(S, 'duration', 0, 3600, 1).name('duration s (0 = auto)').onFinishChange(on('duration'));
-    fExp.add(S, 'loopBars', 0, 64, 1).name('seamless loop (bars)').onFinishChange(on('loopBars'));
+    fExp.add(S, 'loop').name('seamless loop').onChange(on('loop'));
     fExp.add(S, 'format', { 'MP4 (H.264)': 'mp4', 'WebM (VP9)': 'webm', 'PNG sequence': 'png' });
     fExp.add(S, 'bitrate', 2, 200, 1).name('bitrate (Mbps)');
     fExp.add(S, 'keyframe', 0.1, 10, 0.1).name('keyframe every (s)');

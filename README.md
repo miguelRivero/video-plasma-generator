@@ -1,4 +1,4 @@
-# Plasma Dream Generator
+# Video Plasma Generator
 
 Smooth, rhythmic, psychedelic visuals for LED walls and projections, in the browser:
 liquid light that folds into itself, breathes on the beat and drifts through colour,
@@ -58,7 +58,7 @@ Everything moves with a musical clock:
 | **Scenes** | every few bars (**Scenes → new scene every**) the look morphs into a new variation of itself: palette, warp, scale, colour cycling, darkness and glow change smoothly over **morph length** beats. They never cut. **variation** sets how far apart scenes are. |
 
 With a track loaded, the preview clock follows the audio, so you can check the sync by ear.
-Export duration `0` means *auto*: the track length, else 30 s (a seamless loop is always exactly one loop).
+Export duration is in seconds; `0` means *auto*: the track length, else 30 s.
 Tick **Export → include audio** to mux the track into the render.
 
 ## The look
@@ -76,13 +76,18 @@ photosensitivity thresholds. **Calm (no flicker)** turns both off.
 
 ## Seamless loops
 
-Set **Export → seamless loop (bars)** (BPM mode) and the render is exactly one loop that closes up
-perfectly, for VJ software that loops clips. Every motion is rounded to a whole number of repeats
-per loop: the noise travels round a circle in 4D, drift goes round a circle, and rotations and colour
-turns complete whole cycles. The exporter first renders a warm-up of whole loops, so the trails are
-already flowing at frame 0, and only then records. If the loop isn't a whole number of frames
-(e.g. 8 bars at 125 BPM = 15.36 s), it's spread over the nearest whole number of frames, which is
-less than 0.1% off the tempo. The live preview loops too, so you can watch the seam.
+Tick **Export → seamless loop** (BPM mode) and the render is one loop that closes up perfectly, for
+VJ software that loops clips: its last frame leads straight into its first. Its length is
+**Export → duration** in seconds, rounded to the nearest whole number of bars so the beat lines up
+when it repeats (e.g. 16 s at 120 BPM is exactly 8 bars; at 128 BPM it becomes 16.88 s = 9 bars). A message and the info overlay show
+the exact length.
+
+Every motion is rounded to a whole number of repeats per loop: the noise travels round a circle in
+4D, drift goes round a circle, and rotations and colour turns complete whole cycles. The exporter
+first renders a warm-up of whole loops, so the trails are already flowing at frame 0, and only then
+records. If the loop isn't a whole number of frames (e.g. 8 bars at 125 BPM = 15.36 s), it's spread
+over the nearest whole number of frames, which is less than 0.1% off the tempo. The live preview
+loops too, so you can watch the seam.
 
 ## Export
 
@@ -100,11 +105,11 @@ Browsers can't write HAP or ProRes. Convert with ffmpeg (HAP needs width and hei
 
 ```sh
 # MP4 -> HAP for Resolume
-ffmpeg -i plasmadream.mp4 -c:v hap -format hap dream_hap.mov
+ffmpeg -i videoplasma.mp4 -c:v hap -format hap plasma_hap.mov
 # PNG sequence -> HAP
-ffmpeg -framerate 30 -i frame_%06d.png -c:v hap -format hap dream_hap.mov
+ffmpeg -framerate 30 -i frame_%06d.png -c:v hap -format hap plasma_hap.mov
 # anything -> ProRes 422 HQ
-ffmpeg -i plasmadream.mp4 -c:v prores_ks -profile:v 3 -pix_fmt yuv422p10le dream_prores.mov
+ffmpeg -i videoplasma.mp4 -c:v prores_ks -profile:v 3 -pix_fmt yuv422p10le plasma_prores.mov
 ```
 
 **Record live** captures the canvas in real time with MediaRecorder, including your keyboard pushes,
@@ -183,7 +188,7 @@ src/sketch.js       p5 setup() / draw()
 src/app.js          live preview, keys, tap tempo, audio loading, presets, HUD
 src/gui.js          settings panel (lil-gui)
 src/settings.js     defaults and built-in presets
-src/dream.js        the engine: runs the GPU passes for one frame at time t
+src/engine.js       the engine: runs the GPU passes for one frame at time t
 src/shaders.js      GLSL: liquid, trails, bloom, film
 src/rhythm.js       beat clock, pulses, glide, scenes, loop maths
 src/forms.js        light forms drawn with p5: add yours here

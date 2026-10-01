@@ -99,8 +99,12 @@
         case 'beats':
           if (this.S.beats === 'audio' && !this.audio) this.toast('Load an audio file: Rhythm > Load audio… (BPM until then)');
           E.rhythm.retime(); break;
-        case 'bpm': case 'tempoMul': case 'barOffset': case 'loopBars':
+        case 'bpm':
+          E.rhythm.retime(); this.loopNote(); break;
+        case 'tempoMul': case 'barOffset':
           E.rhythm.retime(); break;
+        case 'loop': case 'duration':
+          E.rhythm.retime(); this.loopNote(); break;
         case 'palettes':
           E.rebuildLUT(); E.rhythm.clearScenes(); break;
         case 'paletteColors':
@@ -184,6 +188,17 @@
       this.toast(T.length >= 2 ? `Tap: ${this.S.bpm} BPM` : 'Tap: beat 1', 900);
     }
 
+    /** say how long the seamless loop really is (the duration rounded to whole bars) */
+    loopNote() {
+      const S = this.S;
+      if (!S.loop) return;
+      const bars = GW.loopBars(S, this.audio);
+      if (!bars) { this.toast('Seamless loops follow the BPM, not the audio track (Rhythm > beats from)', 5000); return; }
+      const asked = S.duration > 0 ? S.duration : this.audio ? this.audio.duration : 30, secs = bars * 240 / S.bpm;
+      this.toast(`Seamless loop: ${secs.toFixed(2)} s = ${bars} bar${bars > 1 ? 's' : ''} at ${S.bpm} BPM`
+        + (Math.abs(secs - asked) > 0.005 ? ` (the nearest whole bars to ${+asked.toFixed(2)} s)` : ''), 6000);
+    }
+
     nudgeBpm(d) {
       this.S.bpm = Math.min(220, Math.max(40, Math.round((this.S.bpm + d) * 10) / 10));
       this.gui.refresh();
@@ -209,7 +224,7 @@
 
     savePreset() {
       const blob = new Blob([JSON.stringify(this.S, null, 2)], { type: 'application/json' });
-      GW.download(blob, `plasmadream_preset_seed${this.S.seed}.json`);
+      GW.download(blob, `videoplasma_preset_seed${this.S.seed}.json`);
     }
 
     async loadPresetFile(file) {
@@ -249,7 +264,7 @@
 
     // ------------------------------------------------------------------ output
     snapshot() {
-      this.canvasEl.toBlob(b => GW.download(b, `plasmadream_seed${this.S.seed}_t${this.t.toFixed(2)}.png`), 'image/png');
+      this.canvasEl.toBlob(b => GW.download(b, `videoplasma_seed${this.S.seed}_t${this.t.toFixed(2)}.png`), 'image/png');
     }
 
     async toggleRecord() {
@@ -348,12 +363,12 @@
       const tempo = rh.mode === 'audio' ? `${(this.audio.tempo * S.tempoMul).toFixed(1)} BPM (tracked)`
         : `${S.bpm} BPM` + (S.beats === 'audio' ? ' (no track yet)' : '');
       const scene = R.palA === R.palB || R.morph >= 1 ? R.palB : `${R.palA} → ${R.palB} ${Math.round(100 * R.morph)}%`;
-      const L = rh.loop;
+      const L = rh.loop, LB = rh.loopBars;
       const lines = [
         `${fmtTime(this.t)}${this.playing ? '' : ' · paused'} · ${this.fps.toFixed(0)} fps · ${this.frameMs.toFixed(1)} ms/frame`,
         `preview ${W}×${H} of ${even(S.width)}×${even(S.height)} · ${tempo}`,
         `bar ${Math.floor(R.beat / 4) + 1} beat ${GW.mod(R.k, 4) + 1} · scene ${R.sceneIndex + 1}: ${scene}`
-          + (L ? ` · loop ${(GW.mod(R.beat, S.loopBars * 4) * R.beatLen).toFixed(1)} / ${L.toFixed(1)} s` : S.loopBars > 0 ? ' · loop off (audio beats)' : ''),
+          + (L ? ` · loop ${(GW.mod(R.beat, LB * 4) * R.beatLen).toFixed(1)} / ${L.toFixed(2)} s (${LB} bars)` : S.loop ? ' · loop off (audio beats)' : ''),
       ];
       if (this.audio) lines.push(`audio: ${this.audioName} · ${fmtTime(this.audio.duration)}`);
       if (this.recorder) lines.push('● REC');

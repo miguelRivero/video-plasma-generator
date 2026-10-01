@@ -1,8 +1,8 @@
 /*
-  GLSL for the dream engine (src/dream.js). Kept as strings so the page also
+  GLSL for the engine (src/engine.js). Kept as strings so the page also
   works when opened straight from disk (file://), where shader files can't be fetched.
 
-    DREAM     the liquid: domain-warped 4D simplex noise + plasma waves, symmetry,
+    LIQUID    the liquid: domain-warped 4D simplex noise + plasma waves, symmetry,
               ripples, a looping palette, light and darkness, the light forms
     FEEDBACK  trails: last frame zoomed, turned, swirled, hue-shifted, blended back in
     DOWN      quarter-size copy for the bloom
@@ -105,7 +105,7 @@ vec3 hash32(vec2 p) {
   return fract((p3.xxy + p3.yzz) * p3.zyx);
 }`;
 
-  const DREAM = `
+  const LIQUID = `
 precision highp float;
 varying vec2 vTexCoord;
 
@@ -366,6 +366,6 @@ void main() {
 
   GW.SHADERS = {
     vert: VERT,
-    frag: { dream: DREAM, feedback: FEEDBACK, down: DOWN, blur: BLUR, accum: ACCUM, film: FILM },
+    frag: { liquid: LIQUID, feedback: FEEDBACK, down: DOWN, blur: BLUR, accum: ACCUM, film: FILM },
   };
 })(window.GW = window.GW || {});

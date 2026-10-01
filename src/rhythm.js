@@ -46,6 +46,16 @@
     return r[i] + (r[i + 1] - r[i]) * f;
   }
 
+  /**
+   * Bars in a seamless loop (0 = not looping). The loop is Export > duration seconds long,
+   * rounded to whole bars so the beat lines up when it repeats. BPM / tap tempo only.
+   */
+  GW.loopBars = function (S, audio) {
+    if (!S.loop || (S.beats === 'audio' && audio)) return 0;
+    const secs = S.duration > 0 ? S.duration : audio ? audio.duration : 30;
+    return Math.max(1, Math.round(secs * S.bpm / 240));
+  };
+
   // scene values that morph (multipliers / offsets on the settings)
   const NUM = ['warp', 'scale', 'plasma', 'cycles', 'hue', 'dark', 'glow'];
 
@@ -84,11 +94,11 @@
       this.state = null;
     }
 
+    /** bars in the loop (0 = not looping) */
+    get loopBars() { return this.mode === 'bpm' ? GW.loopBars(this.S, this.audio) : 0; }
+
     /** loop length in seconds (0 = not looping) */
-    get loop() {
-      const S = this.S;
-      return S.loopBars > 0 && this.mode === 'bpm' ? S.loopBars * 240 / S.bpm : 0;
-    }
+    get loop() { return this.loopBars * 240 / this.S.bpm; }
 
     /** `rate` rounded so it repeats a whole number of times per loop (period = one repeat) */
     q(rate, period = 1) {
@@ -141,7 +151,7 @@
     _sceneAt(beat) {
       const S = this.S, never = !(S.sceneBars > 0);
       const SB = Math.max(1, Math.round(S.sceneBars)) * 4;
-      const LB = this.loop ? S.loopBars * 4 : 0;
+      const LB = this.loopBars * 4;
       const b = LB ? mod(beat, LB) : beat;
       const n = LB ? Math.max(1, Math.ceil(LB / SB - 1e-9)) : 0;
       let idx = never ? 0 : Math.floor(b / SB);
